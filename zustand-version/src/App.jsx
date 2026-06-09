@@ -6,8 +6,8 @@ import CartSideBar from './components/CartSideBar/CartSideBar'
 import useAppStore from "./store/useAppStore";
 
 const AppContent = () => {
-  const ui = useAppStore((state) => state.ui);
-  const isDark = ui.theme === 'dark';
+  const theme = useAppStore((state) => state.ui.theme);
+  const isDark = theme === 'dark';
 
   return (
     <div className={`app ${isDark ? 'dark' : ''}`}>
