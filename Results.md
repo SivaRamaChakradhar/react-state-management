@@ -1,154 +1,72 @@
 # React State Management Benchmark Results
 
-## Benchmark Overview
-
-This project compares four state management approaches for a shopping cart application:
-
-1. Context API (Naive)
-2. Context API (Split Contexts)
-3. Zustand
-4. Redux Toolkit
-
-The benchmark evaluates rendering behavior, developer experience, bundle impact, and scalability.
-
 ## Comparison Table
 
-| Metric                              | Context (naive)   | Context (split)   | Zustand       | Redux Toolkit |
-| ----------------------------------- | ----------------- | ----------------- | ------------- | ------------- |
-| State Structure                     | Single AppContext | Multiple Contexts | Central Store | Central Store |
-| Cart Update Rerenders Header        | Yes               | No                | No            | TBD           |
-| Cart Update Rerenders UserInfo      | Yes               | No                | No            | TBD           |
-| Cart Update Rerenders ThemeSwitcher | Yes               | No                | No            | TBD           |
-| Cart Update Rerenders ProductCard   | Yes               | Yes               | No            | TBD           |
-| Cart Update Rerenders CartSidebar   | Yes               | Yes               | Yes           | TBD           |
-| Cart Update Rerenders CartItem      | Yes               | Yes               | Yes           | TBD           |
-| Theme Change Rerenders ProductCard  | Yes               | Yes               | Yes*          | TBD           |
-| Boilerplate                         | Low               | Medium            | Low           | Medium        |
-| Reducers Required                   | Yes               | Yes               | No            | Yes           |
-| Action Types Required               | Yes               | Yes               | No            | No            |
-| Provider Required                   | Yes               | Yes               | No            | Yes           |
-| Selector-Based Subscriptions        | No                | No                | Yes           | Yes           |
-| Scalability                         | Low               | Medium            | High          | High          |
-| Bundle Size Impact                  | Minimal           | Minimal           | Low           | TBD           |
+| Metric                                 | Context (naive) | Context (split) | Zustand | Redux Toolkit |
+| -------------------------------------- | --------------- | --------------- | ------- | ------------- |
+| Header rerenders on cart update        | Yes             | No              | No      | No            |
+| UserInfo rerenders on cart update      | Yes             | No              | No      | No            |
+| ThemeSwitcher rerenders on cart update | Yes             | No              | No      | No            |
+| ProductCard rerenders on cart update   | Yes             | Yes             | No      | No            |
+| CartItemCount rerenders on cart update | Yes             | Yes             | Yes     | Yes           |
+| CartSidebar rerenders on cart update   | Yes             | Yes             | Yes     | Yes           |
+| CartItem rerenders on cart update      | Yes             | Yes             | Yes     | Yes           |
+| Selector-based subscriptions           | No              | No              | Yes     | Yes           |
+| Boilerplate                            | Low             | Medium          | Low     | Medium        |
+| Reducers Required                      | Yes             | Yes             | No      | Yes           |
+| Action Types Required                  | Yes             | Yes             | No      | No            |
+| Provider Required                      | Yes             | Yes             | No      | Yes           |
+| Scalability                            | Low             | Medium          | High    | High          |
+| Bundle Size Impact                     | Minimal         | Minimal         | Low     | Moderate      |
 
-* Theme changes rerendered the application tree because the root component subscribed to theme state.
-
----
-
-## Qualitative Analysis
+## Analysis
 
 ### Context API (Naive)
 
-The naive Context API implementation stores cart, user, and UI state in a single context provider. Any state update creates a new context value, causing all consumers to rerender.
-
-Observed behavior:
-
-* Header rerendered when cart items changed.
-* UserInfo rerendered when cart items changed.
-* ThemeSwitcher rerendered when cart items changed.
-* ProductCard rerendered when cart items changed.
-* Cart-related components rerendered as expected.
-
-Advantages:
-
-* Easy to implement.
-* No external libraries.
-
-Disadvantages:
-
-* Significant unnecessary rerenders.
-* Poor scalability as application size grows.
-
----
+A single AppContext contained cart, user, and UI state. Any state update caused all consumers of the context to rerender, producing the highest number of unnecessary renders.
 
 ### Context API (Split)
 
-The split Context approach separates cart, user, and UI concerns into individual providers.
-
-Observed behavior:
-
-* Header no longer rerendered during cart updates.
-* UserInfo no longer rerendered during cart updates.
-* ThemeSwitcher no longer rerendered during cart updates.
-* Cart-related components still rerendered.
-
-Advantages:
-
-* Better separation of concerns.
-* Reduced unnecessary rerenders.
-
-Disadvantages:
-
-* Increased provider nesting.
-* Still limited compared with selector-based stores.
-
----
+Splitting the application into CartContext, UserContext, and UIContext reduced unnecessary rerenders. Components subscribed only to the context they required.
 
 ### Zustand
 
-Zustand uses a centralized store with selector-based subscriptions.
-
-Observed behavior:
-
-* Header did not rerender when cart items changed.
-* ProductCard did not rerender when cart items changed.
-* Only cart-related subscribers rerendered.
-* Store implementation required significantly less boilerplate than Context API.
-
-Advantages:
-
-* Minimal boilerplate.
-* Selector-based subscriptions.
-* Excellent developer experience.
-* Small bundle footprint.
-
-Disadvantages:
-
-* Additional dependency.
-* Less structured than Redux Toolkit for large teams.
-
----
+Zustand provided selector-based subscriptions with very little boilerplate. ProductCard and other unrelated components no longer rerendered during cart updates. Bundle size remained very small.
 
 ### Redux Toolkit
 
-Implementation pending.
-
-Observations and benchmark data will be added after Redux Toolkit completion.
-
----
+Redux Toolkit achieved rendering behavior similar to Zustand through useSelector. It required more setup but provided a structured architecture, Redux DevTools integration, action tracing, and time-travel debugging support.
 
 ### Decision Guide
 
-#### Choose Context API (Naive) when:
+#### Choose Context API (Naive)
 
-* Building small applications.
-* Learning React Context fundamentals.
-* Performance is not a major concern.
+* Small learning projects
+* Very limited shared state
+* No performance concerns
 
-#### Choose Context API (Split) when:
+#### Choose Context API (Split)
 
-* Applications have a moderate amount of shared state.
-* You want to improve Context performance without introducing external libraries.
+* Small to medium applications
+* Teams wanting to avoid external libraries
+* Moderate performance requirements
 
-#### Choose Zustand when:
+#### Choose Zustand
 
-* You want minimal boilerplate.
-* Performance and developer productivity are priorities.
-* Applications require fine-grained subscriptions.
+* Portfolio projects
+* Startups and small teams
+* Applications requiring excellent performance with minimal boilerplate
+* Fast development cycles
 
-#### Choose Redux Toolkit when:
+#### Choose Redux Toolkit
 
-* Applications are large and complex.
-* Predictable state updates are critical.
-* Teams require strong conventions and tooling support.
+* Enterprise applications
+* Large teams
+* Complex business logic
+* Projects requiring predictable state updates and advanced debugging
 
----
+## Final Conclusion
 
-## Current Conclusion
+The benchmark demonstrates that selector-based state management significantly reduces unnecessary rerenders compared with a naive Context API implementation.
 
-Based on the benchmark completed so far:
-
-1. Zustand provides the best balance between simplicity and rendering performance.
-2. Split Context improves significantly over naive Context.
-3. Naive Context demonstrates the highest amount of unnecessary rerendering.
-4. Redux Toolkit results will be added after implementation and profiling are complete.
+Context splitting improves performance, but Zustand and Redux Toolkit provide the most scalable solutions. Zustand offers the best developer experience and lowest boilerplate, while Redux Toolkit provides stronger architectural conventions and debugging capabilities for large applications.
